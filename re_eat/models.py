@@ -29,6 +29,9 @@ class Recipe(Base):
         self.name = name
         self.description = description
 
+    def __repr__(self):
+        return '<Recipe: "%s">'%self.name
+
 
 class Tag(Base):
     __tablename__ = 'tags'
@@ -38,6 +41,9 @@ class Tag(Base):
 
     def __init__(self, name):
         self.name = name
+
+    def __repr__(self):
+        return '<Tag: "%s">'%self.name
 
 
 
