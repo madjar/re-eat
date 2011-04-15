@@ -1,4 +1,4 @@
-from PyQt4.QtCore import QTimer
+from PyQt4.QtCore import QTimer, pyqtSignal
 from PyQt4.QtGui import QCompleter, QStringListModel, QLineEdit, QWidget, QListWidget, QVBoxLayout
 from re_eat.models import Session, Tag
 
@@ -22,6 +22,8 @@ class TagLineEdit(QLineEdit):
             self.completer().complete()
 
 class TagsWidget(QWidget):
+    tagsChanged = pyqtSignal(list)
+
     def __init__(self, parent=None):
         super(TagsWidget, self).__init__(parent)
         self.lineEdit = TagLineEdit(self)
@@ -47,10 +49,11 @@ class TagsWidget(QWidget):
     def addTag(self):
         text = self.lineEdit.text()
         if text in self.availableTags:
-                self.availableTags.remove(text)
-                self.lineEdit.completer().model().setStringList(self.availableTags)
-                self.listWidget.addItem(text)
-                self.lineEdit.clear()
+            self.availableTags.remove(text)
+            self.lineEdit.completer().model().setStringList(self.availableTags)
+            self.listWidget.addItem(text)
+            self.lineEdit.clear()
+            self.tagsChanged.emit(self.tags())
 
     def tags(self):
         tags = [self.tagsdict[self.listWidget.item(i).text()] for i in xrange(self.listWidget.count())]
