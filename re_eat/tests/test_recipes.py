@@ -2,6 +2,7 @@
 from re_eat.tests.common import TestCase
 
 import sys
+from PyQt4.QtCore import QDataStream, Qt
 from PyQt4.QtGui import QApplication
 from re_eat.models import Session, Tag, Recipe
 from re_eat.recipes import RecipesWidget, get_recipes
@@ -55,3 +56,21 @@ class RecipesWidgetTestCase(TestCase):
 
         self.assertEqual(rw.count(), 4)
         self.assertEqual(rw.item(0).text(), self.recipes[0].name)
+
+    def test_drag_information_are_correct(self):
+        rw = RecipesWidget()
+        self.assertIn('application/vnd.re-eat.recipe', rw.mimeTypes())
+
+        items = [rw.item(i) for i in (0, 1)]
+        ids = [item.data(Qt.UserRole).toInt()[0] for item in items]
+        data = rw.mimeData(items)
+        stream = QDataStream(data.data('application/vnd.re-eat.recipe'))
+        result = []
+        while not stream.atEnd():
+            result.append(stream.readInt())
+        self.assertListEqual(result, ids)
+
+    def test_drag_is_enabled(self):
+        rw = RecipesWidget()
+        assert rw.dragEnabled()
+        assert rw.item(0).flags() & Qt.ItemIsDragEnabled
