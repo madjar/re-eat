@@ -18,7 +18,6 @@ class RecipesWidget(QListWidget):
         self.reload()
 
     def reload(self, tags=()):
-        get_recipes(tags)
         self.clear()
         for r in get_recipes(tags):
             item = QListWidgetItem(r.name, self)
