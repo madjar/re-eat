@@ -4,6 +4,7 @@ import sip
 from re_eat.tests.test_recipes import load_some_tags
 
 sip.setapi('QString', 2)
+sip.setapi('QDate', 2)
 
 import sys
 from PyQt4.QtCore import *

@@ -2,9 +2,9 @@
 # -*- coding: Utf-8 -*-
 
 import logging
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Date
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 logger = logging.getLogger(__name__)
@@ -15,6 +15,11 @@ Session = scoped_session(sessionmaker())
 recipe_tags = Table('recipe_tags', Base.metadata,
                     Column('recipe_id', Integer, ForeignKey('recipes.id')),
                     Column('tag_id', Integer, ForeignKey('tags.id')),
+                    )
+
+recipe_meals = Table('recipe_meals', Base.metadata,
+                    Column('recipe_id', Integer, ForeignKey('recipes.id')),
+                    Column('meal_id', Integer, ForeignKey('meals.id')),
                     )
 
 class Recipe(Base):
@@ -45,6 +50,13 @@ class Tag(Base):
     def __repr__(self):  #pragma: no cover
         return '<Tag: "%s">'%self.name
 
+class Meal(Base):
+    __tablename__ = 'meals'
+
+    id = Column(Integer, primary_key=True)
+    date = Column(Date)
+    index = Column(Integer)
+    recipes = relationship('Recipe', secondary=recipe_meals, backref='meals')
 
 
 def populate():
