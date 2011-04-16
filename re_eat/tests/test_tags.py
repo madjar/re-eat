@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from re_eat.tests.common import TestCase
+from re_eat.tests.common import TestCase, get_app
 
-import sys
-from PyQt4.QtCore import QEvent, Qt
-from PyQt4.QtGui import QApplication, QFocusEvent
+from PyQt4.QtCore import QEvent
+from PyQt4.QtGui import QFocusEvent
 from PyQt4.QtTest import QTest
 from re_eat.tags import TagsWidget
 from re_eat.models import Session, Tag
@@ -12,7 +11,7 @@ class TagsWidgetTestCase(TestCase):
     def setUp(self):
         super(TagsWidgetTestCase, self).setUp()
         Session.add_all(Tag(t) for t in [u'lourd', u'pâtes', u'hiver'])
-        self.app = QApplication(sys.argv)
+        self.app = get_app()
 
     def test_widget_is_empty_first(self):
         tw = TagsWidget()

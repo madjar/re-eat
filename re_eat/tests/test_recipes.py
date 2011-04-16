@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-from re_eat.tests.common import TestCase
+from re_eat.tests.common import TestCase, get_app
 
-import sys
 from PyQt4.QtCore import QDataStream, Qt
-from PyQt4.QtGui import QApplication
 from re_eat.models import Session, Tag, Recipe
 from re_eat.recipes import RecipesWidget, get_recipes
 
@@ -48,8 +46,7 @@ class RecipesWidgetTestCase(TestCase):
     def setUp(self):
         super(RecipesWidgetTestCase, self).setUp()
         self.tags, self.recipes = load_some_tags()
-
-        self.app = QApplication(sys.argv)
+        self.app = get_app()
 
     def test_the_widget_is_correcty_populated(self):
         rw = RecipesWidget()

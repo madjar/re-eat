@@ -15,3 +15,12 @@ class TestCase(unittest.TestCase):
         Session.remove()
 
 
+_app = None
+
+def get_app():
+    global _app
+    if not _app:
+        import sys
+        from PyQt4.QtGui import QApplication
+        _app = QApplication(sys.argv)
+    return _app
