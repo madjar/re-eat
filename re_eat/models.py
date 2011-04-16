@@ -29,7 +29,7 @@ class Recipe(Base):
         self.name = name
         self.description = description
 
-    def __repr__(self):
+    def __repr__(self):  #pragma: no cover
         return '<Recipe: "%s">'%self.name
 
 
@@ -42,7 +42,7 @@ class Tag(Base):
     def __init__(self, name):
         self.name = name
 
-    def __repr__(self):
+    def __repr__(self):  #pragma: no cover
         return '<Tag: "%s">'%self.name
 
 
@@ -64,5 +64,5 @@ def initialize_testing_sql(echo = False):
     engine = create_engine('sqlite:///:memory:', echo=echo)
     initialize_sql(engine)
 
-if __name__=='__main__':
+if __name__=='__main__':  #pragma: no cover
     initialize_testing_sql()
