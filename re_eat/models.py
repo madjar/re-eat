@@ -58,6 +58,15 @@ class Meal(Base):
     index = Column(Integer)
     recipes = relationship('Recipe', secondary=recipe_meals, backref='meals')
 
+    def __init__(self, date, index, recipes=None):
+        self.date = date
+        self.index = index
+        if recipes:
+            self.recipes = recipes
+
+    def __repr__(self):  #pragma: no cover
+        return '<Meal: %s, %s, %s>'%(self.date, self.index, self.recipes)
+
 
 def populate():
     session = Session()

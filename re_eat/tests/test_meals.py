@@ -1,4 +1,8 @@
+import datetime
+import mock
 from re_eat.tests.common import TestCase, get_app
+from re_eat.meals import PlanningWidget
+from re_eat.models import Recipe, Meal, Session
 from PyQt4.QtCore import Qt, QIODevice, QDataStream, QByteArray, QMimeData
 
 class MealWidgetTestCase(TestCase):
@@ -9,7 +13,7 @@ class MealWidgetTestCase(TestCase):
     def _get_one(self):
         import datetime
         from re_eat.meals import MealWidget
-        return MealWidget(datetime.date(2012,12,12))
+        return MealWidget(datetime.date(2012,12,12), 0)
 
     def test_the_widget_is_empty(self):
         mw = self._get_one()
@@ -61,8 +65,29 @@ class MealWidgetTestCase(TestCase):
 
         mw.dropMimeData(0, mimeData, Qt.CopyAction)
         self.assertListEqual(mw.recipeAdded.received,
-                             [(1, mw.date),
-                              (2, mw.date)])
+                             [(1, mw.date, mw.index),
+                              (2, mw.date, mw.index)])
+
+
+class PlanningWidgetTestCase(TestCase):
+    def setUp(self):
+        super(PlanningWidgetTestCase, self).setUp()
+        self.app = get_app()
+
+    def test_we_got_the_right_meals(self):
+        recipe = Recipe('carbo')
+        m1 = Meal(datetime.date(2010, 01, 01), 0, [recipe])
+        m2 = Meal(datetime.date(2010, 01, 05), 0, [recipe])
+        m3 = Meal(datetime.date(2010, 01, 12), 1, [recipe])
+        Session.add_all((recipe, m1, m2, m3))
+
+        obj = mock.Mock(PlanningWidget)
+        obj.fro = datetime.date(2010, 01, 01)
+        obj.to = datetime.date(2010, 01, 10)
+
+        self.assertEqual(PlanningWidget._meals_in_range(obj),
+                         [m1, m2])
+
 
 class DummyRecipe(object):
     def __init__(self, id, name, description=''):
