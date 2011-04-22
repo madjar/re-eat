@@ -31,9 +31,10 @@ class ReEatWidget(QSplitter):
         self.addWidget(left)
 
         right = PlanningWidget(datetime.date.today(),
-                       datetime.date.today()+datetime.timedelta(4))
+                       datetime.date.today() + datetime.timedelta(4))
         #TODO
         self.addWidget(right)
+
 
 def main():
     initialize_testing_sql()
@@ -43,14 +44,14 @@ def main():
     app = QApplication(sys.argv)
 
     m1 = Meal(datetime.date.today(), 0, [Recipe('carbo')])
-    m2 = Meal(datetime.date.today()+datetime.timedelta(2), 0, [Recipe('lala')])
-    m3 = Meal(datetime.date.today()+datetime.timedelta(3), 1, [Recipe('viande')])
+    m2 = Meal(datetime.date.today() + datetime.timedelta(2), 0,
+              [Recipe('lala')])
+    m3 = Meal(datetime.date.today() + datetime.timedelta(3), 1,
+              [Recipe('viande')])
     Session.add_all((m1, m2, m3))
-
 
     w = ReEatWidget()
     w.show()
 
     app.exec_()
     sys.exit()
-

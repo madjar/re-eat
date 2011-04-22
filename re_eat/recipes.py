@@ -1,12 +1,14 @@
-from PyQt4.QtCore import QAbstractListModel, Qt, QMimeData, QDataStream, QByteArray, QIODevice
+from PyQt4.QtCore import Qt, QMimeData, QDataStream, QByteArray, QIODevice
 from PyQt4.QtGui import QListWidget, QListWidgetItem
 from re_eat.models import Session, Recipe, Tag
+
 
 def get_recipes(tags=()):
     recipes = Session.query(Recipe)
     for t in tags:
         recipes = recipes.filter(Recipe.tags.any(Tag.id == t))
     return recipes.all()
+
 
 class RecipesWidget(QListWidget):
     def __init__(self, parent=None):
@@ -35,4 +37,3 @@ class RecipesWidget(QListWidget):
             stream.writeInt(id)
         mimeData.setData('application/vnd.re-eat.recipe', encodedData)
         return mimeData
-

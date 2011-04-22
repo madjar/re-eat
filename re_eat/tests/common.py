@@ -4,6 +4,7 @@ sip.setapi('QDate', 2)
 
 import unittest
 
+
 class TestCase(unittest.TestCase):
     def setUp(self):
         super(TestCase, self).setUp()
@@ -17,6 +18,7 @@ class TestCase(unittest.TestCase):
 
 
 _app = None
+
 
 def get_app():
     global _app

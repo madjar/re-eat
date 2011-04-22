@@ -1,5 +1,6 @@
 from PyQt4.QtCore import QTimer, pyqtSignal
-from PyQt4.QtGui import QCompleter, QStringListModel, QLineEdit, QWidget, QListWidget, QVBoxLayout
+from PyQt4.QtGui import QCompleter, QStringListModel,\
+    QLineEdit, QWidget, QListWidget, QVBoxLayout
 from re_eat.models import Session, Tag
 
 
@@ -10,7 +11,7 @@ class TagLineEdit(QLineEdit):
         self.completer().setModel(QStringListModel())
 
         self.textChanged.connect(self.whenTextChanged)
-    
+
     def focusInEvent(self, event):
         QLineEdit.focusInEvent(self, event)
         if self.completer() and not self.completer().popup().isVisible():
@@ -21,13 +22,15 @@ class TagLineEdit(QLineEdit):
             self.completer().setCompletionPrefix(u"")
             self.completer().complete()
 
+
 class TagsWidget(QWidget):
     tagsChanged = pyqtSignal(list)
 
     def __init__(self, parent=None):
         super(TagsWidget, self).__init__(parent)
         self.lineEdit = TagLineEdit(self)
-        self.lineEdit.returnPressed.connect(lambda: QTimer.singleShot(0, self.addTag))
+        self.lineEdit.returnPressed.connect(
+            lambda: QTimer.singleShot(0, self.addTag))
         self.listWidget = QListWidget(self)
         l = QVBoxLayout(self)
         l.addWidget(self.lineEdit)
@@ -45,7 +48,7 @@ class TagsWidget(QWidget):
             if tag in self.availableTags:
                 self.availableTags.remove(tag)
         self.lineEdit.completer().model().setStringList(self.availableTags)
-        
+
     def addTag(self):
         text = self.lineEdit.text()
         if text in self.availableTags:
@@ -56,5 +59,6 @@ class TagsWidget(QWidget):
             self.tagsChanged.emit(self.tags())
 
     def tags(self):
-        tags = [self.tagsdict[self.listWidget.item(i).text()] for i in xrange(self.listWidget.count())]
+        tags = [self.tagsdict[self.listWidget.item(i).text()]
+                for i in xrange(self.listWidget.count())]
         return tags

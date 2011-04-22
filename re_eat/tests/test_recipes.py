@@ -24,6 +24,7 @@ def load_some_tags():
     Session.commit()
     return tags, recipes
 
+
 class GetRecipesFromTagsTestCase(TestCase):
     def setUp(self):
         super(GetRecipesFromTagsTestCase, self).setUp()

@@ -1,12 +1,14 @@
 import datetime
 from PyQt4.QtCore import Qt, QDataStream, QIODevice, pyqtSignal
-from PyQt4.QtGui import QListWidget, QListWidgetItem, QWidget, QScrollArea, QFormLayout, QHBoxLayout
+from PyQt4.QtGui import QListWidget, QListWidgetItem, QWidget,\
+    QScrollArea, QFormLayout, QHBoxLayout
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import and_
 from re_eat.models import Session, Meal, Recipe
 
 MAX_INDEX = 2
+
 
 def daterange(start_date, end_date):
     for n in range((end_date - start_date).days):
@@ -51,13 +53,14 @@ class MealWidget(QListWidget):
 
         if data.hasFormat('application/vnd.re-eat.recipe'):
             encodedData = data.data('application/vnd.re-eat.recipe')
-            stream = QDataStream (encodedData, QIODevice.ReadOnly)
+            stream = QDataStream(encodedData, QIODevice.ReadOnly)
 
             while not stream.atEnd():
                 id = stream.readInt()
                 self.recipeAdded.emit(id, self.date, self.index)
             return True
         return False
+
 
 class PlanningWidget(QScrollArea):
     def __init__(self, fro, to, parent=None):
@@ -83,7 +86,8 @@ class PlanningWidget(QScrollArea):
 
         # Populate widgets
         for meal in self._meals_in_range():
-            self.widgets[(meal.date, meal.index)].refreshWithRecipes(meal.recipes)
+            self.widgets[(meal.date, meal.index)]\
+                .refreshWithRecipes(meal.recipes)
 
     def _meals_in_range(self):
         return (Session.query(Meal).options(joinedload('recipes'))

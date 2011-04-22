@@ -7,6 +7,7 @@ from PyQt4.QtTest import QTest
 from re_eat.tags import TagsWidget
 from re_eat.models import Session, Tag
 
+
 class TagsWidgetTestCase(TestCase):
     def setUp(self):
         super(TagsWidgetTestCase, self).setUp()
@@ -22,7 +23,8 @@ class TagsWidgetTestCase(TestCase):
         tw = TagsWidget()
 
         QTest.keyClicks(tw.lineEdit, 'lourd')
-        tw.addTag() # Called manually because we would need an event loop otherwise
+        # Called manually because we would need an event loop otherwise
+        tw.addTag()
 
         self.assertEqual(tw.listWidget.count(), 1)
 
@@ -62,7 +64,9 @@ class TagsWidgetTestCase(TestCase):
         QTest.keyClicks(tw.lineEdit, 'lourd')
         tw.addTag()
 
-        expected = [t.id for t in Session.query(Tag.id).filter(Tag.name == u'lourd').all()]
+        expected = [t.id for t in Session.query(Tag.id)
+                                         .filter(Tag.name == u'lourd')
+                                         .all()]
         self.assertEqual(tw.tags(), expected)
 
     def test_the_completion_popup_appears(self):

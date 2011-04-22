@@ -5,6 +5,7 @@ from re_eat.meals import PlanningWidget
 from re_eat.models import Recipe, Meal, Session
 from PyQt4.QtCore import Qt, QIODevice, QDataStream, QByteArray, QMimeData
 
+
 class MealWidgetTestCase(TestCase):
     def setUp(self):
         super(MealWidgetTestCase, self).setUp()
@@ -13,7 +14,7 @@ class MealWidgetTestCase(TestCase):
     def _get_one(self):
         import datetime
         from re_eat.meals import MealWidget
-        return MealWidget(datetime.date(2012,12,12), 0)
+        return MealWidget(datetime.date(2012, 12, 12), 0)
 
     def test_the_widget_is_empty(self):
         mw = self._get_one()
@@ -36,7 +37,6 @@ class MealWidgetTestCase(TestCase):
                                DummyRecipe(2, u"")])
         self.assertEqual(mw.count(), 2)
 
-
     def test_deleting_recipes(self):
         mw = self._get_one()
         recipe = DummyRecipe(1, u"carbo")
@@ -45,7 +45,6 @@ class MealWidgetTestCase(TestCase):
         mw.removeRecipe(recipe)
 
         self.assertEqual(mw.count(), 0)
-
 
     def test_dropping_the_data_emits_the_signal(self):
         mw = self._get_one()
@@ -94,6 +93,7 @@ class DummyRecipe(object):
         self.id = id
         self.name = name
         self.description = description
+
 
 class DummySignal(object):
     def __init__(self):
