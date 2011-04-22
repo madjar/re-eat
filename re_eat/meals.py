@@ -23,7 +23,6 @@ class MealWidget(QListWidget):
         self.date = date
         self.index = index
         self.viewport().setAcceptDrops(True)
-        self.setDropIndicatorShown(True)
 
     def addRecipe(self, recipe):
         item = QListWidgetItem(recipe.name, self)

@@ -1,10 +1,19 @@
 import datetime
+import unittest
 import mock
 from re_eat.tests.common import TestCase, get_app
-from re_eat.meals import PlanningWidget
+from re_eat.meals import PlanningWidget, daterange
 from re_eat.models import Recipe, Meal, Session
 from PyQt4.QtCore import Qt, QIODevice, QDataStream, QByteArray, QMimeData
 
+class DateRangeTestCase(unittest.TestCase):
+    def test_date_range(self):
+        fro = datetime.date(2012, 12, 12)
+        to = datetime.date(2012, 12, 15)
+        self.assertListEqual(list(daterange(fro, to)),
+                             [datetime.date(2012, 12, 12),
+                              datetime.date(2012, 12, 13),
+                              datetime.date(2012, 12, 14)])
 
 class MealWidgetTestCase(TestCase):
     def setUp(self):
@@ -67,6 +76,16 @@ class MealWidgetTestCase(TestCase):
                              [(1, mw.date, mw.index),
                               (2, mw.date, mw.index)])
 
+    def test_stupid_drop_case(self):
+        mw = self._get_one()
+        mw.recipeAdded = DummySignal()
+        self.assertEqual(mw.dropMimeData(None, None, Qt.IgnoreAction),
+                         True)
+
+        mimeData = QMimeData()
+        self.assertEqual(mw.dropMimeData(0, mimeData, Qt.CopyAction),
+                         False)
+        self.assertEqual(mw.recipeAdded.received, [])
 
 class PlanningWidgetTestCase(TestCase):
     def setUp(self):
