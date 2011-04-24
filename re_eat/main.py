@@ -34,6 +34,7 @@ class ReEatWidget(QSplitter):
         right = PlanningWidget(datetime.date.today(),
                        datetime.date.today() + datetime.timedelta(4))
         #TODO
+        rw.recipeRemoved.connect(right._recipe_removed)
         self.addWidget(right)
 
 

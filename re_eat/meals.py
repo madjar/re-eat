@@ -23,7 +23,7 @@ class MealWidget(QListWidget):
         super(MealWidget, self).__init__(parent)
         self.date = date
         self.index = index
-        self.viewport().setAcceptDrops(True)
+        self.setAcceptDrops(True)
         self.setDragEnabled(True)
 
     def addRecipe(self, recipe):
@@ -142,24 +142,20 @@ class PlanningWidget(QScrollArea):
         meal = self.get_meal(date, index)
         recipe = Session.query(Recipe).get(id)
         meal.recipes.append(recipe)
-        return recipe
+        self.widgets[(date, index)].addRecipe(recipe)
 
     def remove_recipe(self, id, date, index):
         meal = self.get_meal(date, index)
         recipe = Session.query(Recipe).get(id)
         meal.recipes.remove(recipe)
-        return recipe
+        self.widgets[(date, index)].removeRecipe(recipe)
 
     def _recipe_added(self, id, date, index):
-        recipe = self.add_recipe(id, date, index)
-        self.widgets[(date, index)].addRecipe(recipe)
+        self.add_recipe(id, date, index)
 
     def _recipe_moved(self, id, date_from, index_from, date_to, index_to):
-        widget_from = self.widgets[(date_from, index_from)]
-        widget_to = self.widgets[(date_to, index_to)]
-
-        recipe = self.remove_recipe(id, date_from, index_from)
-        widget_from.removeRecipe(recipe)
-
+        self.remove_recipe(id, date_from, index_from)
         self.add_recipe(id, date_to, index_to)
-        widget_to.addRecipe(recipe)
+
+    def _recipe_removed(self, id, date, index):
+        self.remove_recipe(id, date, index)
