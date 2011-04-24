@@ -1,4 +1,4 @@
-from PyQt4.QtCore import QTimer, pyqtSignal
+from PyQt4.QtCore import QTimer, pyqtSignal, Qt
 from PyQt4.QtGui import QCompleter, QStringListModel,\
     QLineEdit, QWidget, QListWidget, QVBoxLayout
 from re_eat.models import Session, Tag
@@ -62,3 +62,10 @@ class TagsWidget(QWidget):
         tags = [self.tagsdict[self.listWidget.item(i).text()]
                 for i in xrange(self.listWidget.count())]
         return tags
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Delete:
+            self.listWidget.takeItem(self.listWidget.currentRow())
+            self.tagsChanged.emit(self.tags())
+        else:
+            super(TagsWidget, self).keyPressEvent(event)
