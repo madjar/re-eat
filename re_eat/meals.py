@@ -1,5 +1,5 @@
 import datetime
-from PyQt4.QtCore import Qt, QDataStream, QIODevice, pyqtSignal
+from PyQt4.QtCore import Qt, QDataStream, QIODevice, pyqtSignal, QMimeData, QByteArray, QVariant
 from PyQt4.QtGui import QListWidget, QListWidgetItem, QWidget,\
     QScrollArea, QFormLayout, QHBoxLayout
 from sqlalchemy.orm import joinedload
@@ -17,12 +17,14 @@ def daterange(start_date, end_date):
 
 class MealWidget(QListWidget):
     recipeAdded = pyqtSignal([int, datetime.date, int])
+    recipeMoved = pyqtSignal([int, datetime.date, int, datetime.date, int])
 
     def __init__(self, date, index, parent=None):
         super(MealWidget, self).__init__(parent)
         self.date = date
         self.index = index
         self.viewport().setAcceptDrops(True)
+        self.setDragEnabled(True)
 
     def addRecipe(self, recipe):
         item = QListWidgetItem(recipe.name, self)
@@ -41,10 +43,11 @@ class MealWidget(QListWidget):
                 return
 
     def mimeTypes(self):
-        return ['application/vnd.re-eat.recipe']
+        return ['application/vnd.re-eat.meal_recipe',
+                'application/vnd.re-eat.recipe']
 
     def supportedDropActions(self):
-        return Qt.CopyAction | Qt.MoveAction
+        return Qt.CopyAction
 
     def dropMimeData(self, index, data, action):
         if action == Qt.IgnoreAction:
@@ -58,7 +61,29 @@ class MealWidget(QListWidget):
                 id = stream.readInt()
                 self.recipeAdded.emit(id, self.date, self.index)
             return True
+        elif data.hasFormat('application/vnd.re-eat.meal_recipe'):
+            encodedData = data.data('application/vnd.re-eat.meal_recipe')
+            stream = QDataStream(encodedData, QIODevice.ReadOnly)
+
+            while not stream.atEnd():
+                id = stream.readInt()
+                date = stream.readQVariant()
+                index = stream.readInt()
+                self.recipeMoved.emit(id, date, index, self.date, self.index)
+            return True
         return False
+
+    def mimeData(self, items):
+        mimeData = QMimeData()
+        encodedData = QByteArray()
+        stream = QDataStream(encodedData, QIODevice.WriteOnly)
+        for item in items:
+            id = item.data(Qt.UserRole)
+            stream.writeInt(id)
+            stream.writeQVariant(self.date)
+            stream.writeInt(self.index)
+        mimeData.setData('application/vnd.re-eat.meal_recipe', encodedData)
+        return mimeData
 
 
 class PlanningWidget(QScrollArea):
@@ -98,10 +123,12 @@ class PlanningWidget(QScrollArea):
         mw.setMinimumHeight(48)
         mw.setMaximumHeight(64)
         mw.recipeAdded.connect(self._recipe_added)
+        mw.recipeMoved.connect(self._recipe_moved)
         self.columns[index].addRow(date.strftime('%A %d %B'), mw)
         self.widgets[(date, index)] = mw
 
-    def _recipe_added(self, id, date, index):
+
+    def get_meal(self, date, index):
         try:
             meal = (Session.query(Meal).
                     filter(and_(Meal.date == date, Meal.index == index))
@@ -109,7 +136,30 @@ class PlanningWidget(QScrollArea):
         except NoResultFound:
             meal = Meal(date, index)
             Session.add(meal)
+        return meal
 
+    def add_recipe(self, id, date, index):
+        meal = self.get_meal(date, index)
         recipe = Session.query(Recipe).get(id)
         meal.recipes.append(recipe)
+        return recipe
+
+    def remove_recipe(self, id, date, index):
+        meal = self.get_meal(date, index)
+        recipe = Session.query(Recipe).get(id)
+        meal.recipes.remove(recipe)
+        return recipe
+
+    def _recipe_added(self, id, date, index):
+        recipe = self.add_recipe(id, date, index)
         self.widgets[(date, index)].addRecipe(recipe)
+
+    def _recipe_moved(self, id, date_from, index_from, date_to, index_to):
+        widget_from = self.widgets[(date_from, index_from)]
+        widget_to = self.widgets[(date_to, index_to)]
+
+        recipe = self.remove_recipe(id, date_from, index_from)
+        widget_from.removeRecipe(recipe)
+
+        self.add_recipe(id, date_to, index_to)
+        widget_to.addRecipe(recipe)

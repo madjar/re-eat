@@ -58,7 +58,7 @@ class MealWidgetTestCase(TestCase):
     def test_dropping_the_data_emits_the_signal(self):
         mw = self._get_one()
         self.assertEqual(mw.supportedDropActions(),
-                         Qt.CopyAction | Qt.MoveAction)
+                         Qt.CopyAction)
         self.assertIn('application/vnd.re-eat.recipe', mw.mimeTypes())
         assert mw.viewport().acceptDrops()
 
