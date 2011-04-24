@@ -33,7 +33,7 @@ class RecipesWidget(QListWidget):
         encodedData = QByteArray()
         stream = QDataStream(encodedData, QIODevice.WriteOnly)
         for item in items:
-            id, _ = item.data(Qt.UserRole).toInt()
+            id = item.data(Qt.UserRole)
             stream.writeInt(id)
         mimeData.setData('application/vnd.re-eat.recipe', encodedData)
         return mimeData

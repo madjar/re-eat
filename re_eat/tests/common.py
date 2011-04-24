@@ -1,6 +1,7 @@
 import sip
 sip.setapi('QString', 2)
 sip.setapi('QDate', 2)
+sip.setapi('QVariant', 2)
 
 import unittest
 

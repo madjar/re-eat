@@ -60,7 +60,7 @@ class RecipesWidgetTestCase(TestCase):
         self.assertIn('application/vnd.re-eat.recipe', rw.mimeTypes())
 
         items = [rw.item(i) for i in (0, 1)]
-        ids = [item.data(Qt.UserRole).toInt()[0] for item in items]
+        ids = [item.data(Qt.UserRole) for item in items]
         data = rw.mimeData(items)
         stream = QDataStream(data.data('application/vnd.re-eat.recipe'))
         result = []

@@ -35,7 +35,7 @@ class MealWidget(QListWidget):
 
     def removeRecipe(self, recipe):
         for i in range(self.count()):
-            id, _ = self.item(i).data(Qt.UserRole).toInt()
+            id = self.item(i).data(Qt.UserRole)
             if id == recipe.id:
                 self.takeItem(i)
                 return
