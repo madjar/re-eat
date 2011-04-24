@@ -106,6 +106,20 @@ class PlanningWidgetTestCase(TestCase):
         self.assertEqual(PlanningWidget._meals_in_range(obj),
                          [m1, m2])
 
+    def test_the_widget_is_correctly_initialized(self):
+        recipe = Recipe('carbo')
+        m1 = Meal(datetime.date(2010, 01, 01), 0, [recipe])
+        m2 = Meal(datetime.date(2010, 01, 05), 1, [recipe])
+        Session.add_all([recipe, m1, m2])
+
+        fro = datetime.date(2010, 01, 01)
+        to = datetime.date(2010, 01, 10)
+        pw = PlanningWidget(fro, to)
+
+        self.assertEqual(pw.widgets[(m1.date, m1.index)].item(0).text(),
+                         'carbo')
+
+
 
 class DummyRecipe(object):
     def __init__(self, id, name, description=''):
