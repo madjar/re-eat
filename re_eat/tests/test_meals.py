@@ -76,6 +76,19 @@ class MealWidgetTestCase(TestCase):
                              [(1, mw.date, mw.index),
                               (2, mw.date, mw.index)])
 
+        mw.recipeMoved = DummySignal()
+        mimeData = QMimeData()
+        encodedData = QByteArray()
+        stream = QDataStream(encodedData, QIODevice.WriteOnly)
+        stream.writeInt(42)
+        stream.writeQVariant(datetime.date.today())
+        stream.writeInt(2)
+        mimeData.setData('application/vnd.re-eat.meal_recipe', encodedData)
+
+        mw.dropMimeData(0, mimeData, Qt.CopyAction)
+        self.assertListEqual(mw.recipeMoved.received,
+                             [(42, datetime.date.today(), 2, mw.date, mw.index)])
+
     def test_stupid_drop_case(self):
         mw = self._get_one()
         mw.recipeAdded = DummySignal()
@@ -87,10 +100,35 @@ class MealWidgetTestCase(TestCase):
                          False)
         self.assertEqual(mw.recipeAdded.received, [])
 
+    def test_mime_data(self):
+        class DummyItem(object):
+            def data(s, role):
+                self.assertEqual(role, Qt.UserRole)
+                return 42
+
+        mw = self._get_one()
+        data = mw.mimeData([DummyItem()]).data('application/vnd.re-eat.meal_recipe')
+        stream = QDataStream(data, QIODevice.ReadOnly)
+        self.assertEqual(stream.readInt(), 42)
+        self.assertEqual(stream.readQVariant(), mw.date)
+        self.assertEqual(stream.readInt(), mw.index)
+
+
 class PlanningWidgetTestCase(TestCase):
     def setUp(self):
         super(PlanningWidgetTestCase, self).setUp()
         self.app = get_app()
+
+    def _get_one(self):
+        self.recipe = Recipe('carbo')
+        self.m1 = Meal(datetime.date(2010, 01, 01), 0, [self.recipe])
+        self.m2 = Meal(datetime.date(2010, 01, 05), 1, [self.recipe])
+        Session.add_all([self.recipe, self.m1, self.m2])
+
+        fro = datetime.date(2010, 01, 01)
+        to = datetime.date(2010, 01, 10)
+        pw = PlanningWidget(fro, to)
+        return pw
 
     def test_we_got_the_right_meals(self):
         recipe = Recipe('carbo')
@@ -107,17 +145,52 @@ class PlanningWidgetTestCase(TestCase):
                          [m1, m2])
 
     def test_the_widget_is_correctly_initialized(self):
-        recipe = Recipe('carbo')
-        m1 = Meal(datetime.date(2010, 01, 01), 0, [recipe])
-        m2 = Meal(datetime.date(2010, 01, 05), 1, [recipe])
-        Session.add_all([recipe, m1, m2])
+        pw = self._get_one()
 
-        fro = datetime.date(2010, 01, 01)
-        to = datetime.date(2010, 01, 10)
-        pw = PlanningWidget(fro, to)
-
-        self.assertEqual(pw.widgets[(m1.date, m1.index)].item(0).text(),
+        self.assertEqual(pw.widgets[(self.m1.date, self.m1.index)].item(0).text(),
                          'carbo')
+
+    def test_get_existing_meal(self):
+        pw = self._get_one()
+        self.assertEqual(pw.get_meal(self.m1.date, self.m1.index),
+                         self.m1)
+
+    def test_get_new_meal(self):
+        pw = self._get_one()
+        date = datetime.date(2010, 01, 03)
+        index = 2
+        meal = pw.get_meal(date, index)
+        self.assertEqual(meal.date, date)
+        self.assertEqual(meal.index, index)
+
+    def test_recipe_added(self):
+        pw = self._get_one()
+        date = datetime.date(2010, 01, 03)
+        index = 1
+        pw._recipe_added(self.recipe.id, date, index)
+        self.assertEqual(pw.get_meal(date, index).recipes,
+                         [self.recipe])
+        self.assertEqual(pw.widgets[(date, index)].count(), 1)
+
+    def test_recipe_moved(self):
+        pw = self._get_one()
+        arg1 = (datetime.date(2010, 01, 01), 0)
+        arg2 = (datetime.date(2010, 01, 03), 1)
+        pw._recipe_moved(self.recipe.id, arg1[0], arg1[1], *arg2)
+        self.assertEqual(pw.get_meal(*arg1).recipes,
+                         [])
+        self.assertEqual(pw.widgets[arg1].count(), 0)
+        self.assertEqual(pw.get_meal(*arg2).recipes,
+                         [self.recipe])
+        self.assertEqual(pw.widgets[arg2].count(), 1)
+
+    def test_recipe_removed(self):
+        pw = self._get_one()
+        arg = (datetime.date(2010, 01, 01), 0)
+        pw._recipe_removed(self.recipe.id, *arg)
+        self.assertEqual(pw.get_meal(*arg).recipes,
+                         [])
+        self.assertEqual(pw.widgets[arg].count(), 0)
 
 
 

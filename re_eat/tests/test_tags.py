@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from re_eat.tests.common import TestCase, get_app
 
-from PyQt4.QtCore import QEvent
-from PyQt4.QtGui import QFocusEvent
+from PyQt4.QtCore import QEvent, Qt
+from PyQt4.QtGui import QFocusEvent, QKeyEvent
 from PyQt4.QtTest import QTest
 from re_eat.tags import TagsWidget
 from re_eat.models import Session, Tag
@@ -76,3 +76,13 @@ class TagsWidgetTestCase(TestCase):
 
         self.assert_(tw.lineEdit.completer().popup().isVisible(),
                      "Completion popup doesn't appear on focus")
+
+
+    def test_remove_tag_with_delete_key(self):
+        tw = TagsWidget()
+        QTest.keyClicks(tw.lineEdit, 'lourd')
+        tw.addTag()
+        tw.listWidget.setCurrentRow(0)
+        tw.keyPressEvent(QKeyEvent(QEvent.KeyPress, Qt.Key_Delete, Qt.NoModifier))
+
+        self.assertEqual(tw.listWidget.count(), 0)

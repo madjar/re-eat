@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from re_eat.tests.common import TestCase, get_app
 
-from PyQt4.QtCore import QDataStream, Qt
+from PyQt4.QtCore import QDataStream, Qt, QMimeData, QByteArray, QIODevice
 from re_eat.models import Session, Tag, Recipe
 from re_eat.recipes import RecipesWidget, get_recipes
+import datetime
 
 
 def load_some_tags():
@@ -72,3 +73,43 @@ class RecipesWidgetTestCase(TestCase):
         rw = RecipesWidget()
         assert rw.dragEnabled()
         assert rw.item(0).flags() & Qt.ItemIsDragEnabled
+
+
+    def test_dropping_the_data_emits_the_signal(self):
+        rw = RecipesWidget()
+        self.assertEqual(rw.supportedDropActions(),
+                         Qt.CopyAction|Qt.MoveAction)
+        self.assertIn('application/vnd.re-eat.meal_recipe', rw.mimeTypes())
+        assert rw.viewport().acceptDrops()
+
+        rw.recipeRemoved = DummySignal()
+
+        mimeData = QMimeData()
+        encodedData = QByteArray()
+        stream = QDataStream(encodedData, QIODevice.WriteOnly)
+        stream.writeInt(1)
+        stream.writeQVariant(datetime.date.today())
+        stream.writeInt(2)
+        mimeData.setData('application/vnd.re-eat.meal_recipe', encodedData)
+
+        rw.dropMimeData(0, mimeData, Qt.CopyAction)
+        self.assertListEqual(rw.recipeRemoved.received,
+                             [(1, datetime.date.today(), 2)])
+
+    def test_stupid_drop_case(self):
+        rw = RecipesWidget()
+        rw.recipeRemoved = DummySignal()
+        self.assertEqual(rw.dropMimeData(None, None, Qt.IgnoreAction),
+                         True)
+
+        mimeData = QMimeData()
+        self.assertEqual(rw.dropMimeData(0, mimeData, Qt.CopyAction),
+                         False)
+        self.assertEqual(rw.recipeRemoved.received, [])
+
+class DummySignal(object):
+    def __init__(self):
+        self.received = []
+
+    def emit(self, *args):
+        self.received.append(args)
