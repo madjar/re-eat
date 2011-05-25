@@ -14,12 +14,13 @@ from re_eat.models import initialize_testing_sql, Session, Tag, Recipe, Meal
 from re_eat.meals import PlanningWidget
 from re_eat.tags import TagsWidget
 from re_eat.recipes import RecipesWidget
+from re_eat.daterange import DateRangeDialog
 
 from re_eat.tests.test_recipes import load_some_tags
 
 
 class ReEatWidget(QSplitter):
-    def __init__(self):
+    def __init__(self, fro, to):
         super(ReEatWidget, self).__init__(Qt.Horizontal)
 
         left = QSplitter(Qt.Vertical)
@@ -31,9 +32,7 @@ class ReEatWidget(QSplitter):
 
         self.addWidget(left)
 
-        right = PlanningWidget(datetime.date.today(),
-                       datetime.date.today() + datetime.timedelta(4))
-        #TODO
+        right = PlanningWidget(fro, to)
         rw.recipeRemoved.connect(right._recipe_removed)
         self.addWidget(right)
 
@@ -52,8 +51,11 @@ def main():
               [Recipe('viande')])
     Session.add_all((m1, m2, m3))
 
-    w = ReEatWidget()
+    drd = DateRangeDialog()
+    if not drd.exec_():
+        sys.exit(-1)
+
+    w = ReEatWidget(drd.fro, drd.to)
     w.show()
 
-    app.exec_()
-    sys.exit()
+    sys.exit(app.exec_())
