@@ -1,6 +1,6 @@
 import datetime
 from PyQt4.QtCore import Qt, QMimeData, QDataStream, QByteArray, QIODevice, pyqtSignal
-from PyQt4.QtGui import QListWidget, QListWidgetItem
+from PyQt4.QtGui import QListWidget, QListWidgetItem, QDialog, QFormLayout, QLineEdit, QPlainTextEdit, QDialogButtonBox, QHBoxLayout
 from re_eat.models import Session, Recipe, Tag
 
 
@@ -13,6 +13,7 @@ def get_recipes(tags=()):
 
 class RecipesWidget(QListWidget):
     recipeRemoved = pyqtSignal([int, datetime.date, int])
+    recipeChanged = pyqtSignal()
 
     def __init__(self, parent=None):
         super(RecipesWidget, self).__init__(parent)
@@ -21,6 +22,8 @@ class RecipesWidget(QListWidget):
         self.model().setSupportedDragActions(Qt.CopyAction)
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(False)
+
+        self.itemDoubleClicked.connect(self.doubleClick)
 
         self.reload()
 
@@ -59,3 +62,46 @@ class RecipesWidget(QListWidget):
                 self.recipeRemoved.emit(id, date, index)
             return True
         return False
+
+    def doubleClick(self, item):
+        recipe = Session.query(Recipe).get(item.data(Qt.UserRole))
+        if RecipeEditionDialog(recipe, self).exec_():
+            self.reload()
+            self.recipeChanged.emit()
+
+
+class RecipeEditionDialog(QDialog):
+    def __init__(self, recipe = None, parent = None):
+        super(RecipeEditionDialog, self).__init__(parent)
+
+        self.setWindowTitle('Recipe edition')
+
+        self.name = QLineEdit()
+        self.description = QPlainTextEdit()
+        self.tags = QLineEdit()
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+
+        l = QFormLayout(self)
+        l.addRow('Name', self.name)
+        l.addRow('Description', self.description)
+        l.addRow('Tags', self.tags)
+        l.addWidget(buttons)
+
+
+        if recipe:
+            self.recipe = recipe
+            self.name.setText(recipe.name)
+            self.description.setPlainText(recipe.description)
+            self.tags.setText(';'.join(t.name for t in recipe.tags))
+        else:
+            self.recipe = Recipe('')
+
+        self.accepted.connect(self.save_recipe)
+
+    def save_recipe(self):
+        self.recipe.name = self.name.text()
+        self.recipe.description = self.description.toPlainText()
+        self.recipe.tags = [Tag.get(t) for t in self.tags.text().split(';')] if self.tags.text() else []
+        Session.add(self.recipe)

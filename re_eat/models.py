@@ -51,6 +51,14 @@ class Tag(Base):
     def __repr__(self):  # pragma: no cover
         return '<Tag: "%s">' % self.name
 
+    @classmethod
+    def get(cls, name):
+        tag = Session.query(Tag).filter_by(name=name).first()
+        if not tag:
+            tag = Tag(name)
+            Session.add(tag)
+        return tag
+
 
 class Meal(Base):
     __tablename__ = 'meals'

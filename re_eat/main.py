@@ -27,6 +27,7 @@ class ReEatWidget(QSplitter):
         rw = RecipesWidget()
         tw = TagsWidget()
         tw.tagsChanged.connect(rw.reload)
+        rw.recipeChanged.connect(tw.reload)
         left.addWidget(rw)
         left.addWidget(tw)
 

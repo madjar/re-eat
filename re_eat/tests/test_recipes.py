@@ -3,8 +3,9 @@ from re_eat.tests.common import TestCase, get_app
 
 from PyQt4.QtCore import QDataStream, Qt, QMimeData, QByteArray, QIODevice
 from re_eat.models import Session, Tag, Recipe
-from re_eat.recipes import RecipesWidget, get_recipes
+from re_eat.recipes import RecipesWidget, get_recipes, RecipeEditionDialog
 import datetime
+import mock
 
 
 def load_some_tags():
@@ -107,9 +108,66 @@ class RecipesWidgetTestCase(TestCase):
                          False)
         self.assertEqual(rw.recipeRemoved.received, [])
 
+    @mock.patch('re_eat.recipes.RecipeEditionDialog')
+    def test_double_click_open_the_recipe_dialog(self, mock_dialog):
+        r = self.recipes[0]
+        rw = RecipesWidget()
+        rw.doubleClick(rw.item(0))
+
+        mock_dialog.assert_called_once_with(r, rw)
+        mock_dialog(r, rw).exec_.assert_called_once_with()
+
+
 class DummySignal(object):
     def __init__(self):
         self.received = []
 
     def emit(self, *args):
         self.received.append(args)
+
+
+class RecipeEditionDialogTestCase(TestCase):
+    def setUp(self):
+        super(RecipeEditionDialogTestCase, self).setUp()
+        self.tags, self.recipes = load_some_tags()
+        self.app = get_app()
+
+    def test_create_recipe(self):
+        fut = RecipeEditionDialog()
+        self.assertEqual(fut.name.text(), '')
+        self.assertEqual(fut.description.toPlainText(), '')
+        self.assertEqual(fut.tags.text(), '')
+
+        fut.name.setText(u'Endive')
+        fut.description.setPlainText(u'desc')
+        fut.tags.setText(u'légume')
+        tag = Tag(u'légume')
+        Session.add(tag)
+
+        fut.accept()
+
+        r = fut.recipe
+        self.assertEqual(r.name, u'Endive')
+        self.assertEqual(r.description, u'desc')
+        self.assertEqual(r.tags, [tag])
+
+    def test_edit_recipe(self):
+        r = self.recipes[1]
+        fut = RecipeEditionDialog(r)
+        self.assertEqual(fut.name.text(), r.name)
+        self.assertEqual(fut.description.toPlainText(), r.description)
+        self.assertIn(fut.tags.text(), [u'pâtes;tomate',
+                                        u'tomate;pâtes'])
+
+        fut.name.setText(u'Endive')
+        fut.description.setPlainText(u'desc')
+        fut.tags.setText(u'légume')
+        tag = Tag(u'légume')
+        Session.add(tag)
+
+        fut.accept()
+
+        r = fut.recipe
+        self.assertEqual(r.name, u'Endive')
+        self.assertEqual(r.description, u'desc')
+        self.assertEqual(r.tags, [tag])
