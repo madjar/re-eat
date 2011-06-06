@@ -2,6 +2,7 @@
 from re_eat.tests.common import TestCase, get_app
 
 from PyQt4.QtCore import QDataStream, Qt, QMimeData, QByteArray, QIODevice
+from PyQt4.QtTest import QTest
 from re_eat.models import Session, Tag, Recipe
 from re_eat.recipes import RecipesWidget, get_recipes, RecipeEditionDialog
 import datetime
@@ -116,6 +117,26 @@ class RecipesWidgetTestCase(TestCase):
 
         mock_dialog.assert_called_once_with(r, rw)
         mock_dialog(r, rw).exec_.assert_called_once_with()
+
+    def test_remove_recipe(self):
+        rw = RecipesWidget()
+        self.assertEqual(len(rw.selectedItems()), 0)
+        before = Session.query(Recipe).count()
+
+        rw.item(0).setSelected(True)
+        rw.item(3).setSelected(True)
+        QTest.keyClick(rw, Qt.Key_Delete)
+
+        self.assertEqual(Session.query(Recipe).count(), before - 2)
+        self.assertEqual(rw.count(), before - 2)
+
+    def test_key_not_borked(self):
+        rw = RecipesWidget()
+        previous = rw.currentRow()
+
+        QTest.keyClick(rw, Qt.Key_Down)
+
+        self.assertEqual(rw.currentRow(), previous + 1)
 
 
 class DummySignal(object):

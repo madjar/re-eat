@@ -69,6 +69,15 @@ class RecipesWidget(QListWidget):
             self.reload()
             self.recipeChanged.emit()
 
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Delete:
+            # Pas de confirmation, pas de sauvegarde : on est des oufs !
+            ids = [item.data(Qt.UserRole) for item in self.selectedItems()]
+            Session.query(Recipe).filter(Recipe.id.in_(ids)).delete('fetch')
+            self.reload()
+        else:
+            super(RecipesWidget, self).keyPressEvent(event)
+
 
 class RecipeEditionDialog(QDialog):
     def __init__(self, recipe = None, parent = None):
