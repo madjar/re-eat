@@ -6,17 +6,15 @@ sip.setapi('QDate', 2)
 sip.setapi('QVariant', 2)
 
 import sys
-import datetime
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from re_eat.models import initialize_testing_sql, Session, Tag, Recipe, Meal
+from re_eat.models import initialize_sql
 from re_eat.meals import PlanningWidget
 from re_eat.tags import TagsWidget
 from re_eat.recipes import RecipesWidget
 from re_eat.daterange import DateRangeDialog
-
-from re_eat.tests.test_recipes import load_some_tags
+from re_eat.config import database_url
 
 
 class ReEatWidget(QSplitter):
@@ -39,18 +37,9 @@ class ReEatWidget(QSplitter):
 
 
 def main():
-    initialize_testing_sql()
-
-    load_some_tags()
-
     app = QApplication(sys.argv)
 
-    m1 = Meal(datetime.date.today(), 0, [Recipe('carbo')])
-    m2 = Meal(datetime.date.today() + datetime.timedelta(2), 0,
-              [Recipe('lala')])
-    m3 = Meal(datetime.date.today() + datetime.timedelta(3), 1,
-              [Recipe('viande')])
-    Session.add_all((m1, m2, m3))
+    initialize_sql(database_url())
 
     drd = DateRangeDialog()
     if not drd.exec_():

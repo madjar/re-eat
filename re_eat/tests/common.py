@@ -9,8 +9,8 @@ import unittest
 class TestCase(unittest.TestCase):
     def setUp(self):
         super(TestCase, self).setUp()
-        from re_eat.models import initialize_testing_sql
-        initialize_testing_sql()
+        from re_eat.models import initialize_sql
+        initialize_sql()
 
     def tearDown(self):
         super(TestCase, self).tearDown()

@@ -2,6 +2,7 @@
 # -*- coding: Utf-8 -*-
 
 import logging
+from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, Integer, String, ForeignKey, Date
@@ -85,17 +86,13 @@ def populate():
     session.commit()
 
 
-def initialize_sql(engine):
+def initialize_sql(url='sqlite:///:memory:', echo=False):
+    engine = create_engine(url, echo=echo)
     Session.configure(bind=engine)
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
     populate()
 
 
-def initialize_testing_sql(echo=False):
-    from sqlalchemy import create_engine
-    engine = create_engine('sqlite:///:memory:', echo=echo)
-    initialize_sql(engine)
-
 if __name__ == '__main__':  # pragma: no cover
-    initialize_testing_sql()
+    initialize_sql()
