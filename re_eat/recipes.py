@@ -63,8 +63,12 @@ class RecipesWidget(QListWidget):
             return True
         return False
 
+
     def doubleClick(self, item):
         recipe = Session.query(Recipe).get(item.data(Qt.UserRole))
+        self.editRecipe(recipe)
+
+    def editRecipe(self, recipe):
         if RecipeEditionDialog(recipe, self).exec_():
             self.reload()
             self.recipeChanged.emit()
@@ -75,6 +79,8 @@ class RecipesWidget(QListWidget):
             ids = [item.data(Qt.UserRole) for item in self.selectedItems()]
             Session.query(Recipe).filter(Recipe.id.in_(ids)).delete('fetch')
             self.reload()
+        elif event.key() == Qt.Key_N:
+            self.editRecipe(None)
         else:
             super(RecipesWidget, self).keyPressEvent(event)
 
