@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 logger = logging.getLogger(__name__)
 
 Base = declarative_base()
-Session = scoped_session(sessionmaker())
+Session = scoped_session(sessionmaker(autocommit=True))
 
 recipe_tags = Table('recipe_tags', Base.metadata,
                     Column('recipe_id', Integer, ForeignKey('recipes.id')),
@@ -79,20 +79,10 @@ class Meal(Base):
         return '<Meal: %s, %s, %s>' % (self.date, self.index, self.recipes)
 
 
-def populate():
-    session = Session()
-    # nothing here for now
-    session.flush()
-    session.commit()
-
-
-def initialize_sql(url='sqlite:///:memory:', echo=False):
+def initialize_sql(url='sqlite:///:memory:', echo=True):
     engine = create_engine(url, echo=echo)
     Session.configure(bind=engine)
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
-    populate()
-
-
 if __name__ == '__main__':  # pragma: no cover
     initialize_sql()
