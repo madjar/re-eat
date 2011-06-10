@@ -79,7 +79,7 @@ class Meal(Base):
         return '<Meal: %s, %s, %s>' % (self.date, self.index, self.recipes)
 
 
-def initialize_sql(url='sqlite:///:memory:', echo=True):
+def initialize_sql(url='sqlite:///:memory:', echo=False):
     engine = create_engine(url, echo=echo)
     Session.configure(bind=engine)
     Base.metadata.bind = engine
