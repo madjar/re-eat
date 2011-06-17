@@ -24,7 +24,7 @@ def load_some_tags():
     recipes = [r1, r2, r3, r4]
     Session.add_all(tags)
     Session.add_all(recipes)
-    Session.commit()
+    Session.flush()
     return tags, recipes
 
 

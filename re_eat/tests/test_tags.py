@@ -50,7 +50,6 @@ class TagsWidgetTestCase(TestCase):
         QTest.keyClicks(tw.lineEdit, 'lourd')
         tw.addTag()
         Session.add(Tag(u'Another tag'))
-        Session.commit()
         tw.reload()
 
         QTest.keyClicks(tw.lineEdit, 'lourd')
